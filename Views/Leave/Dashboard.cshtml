@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "Employee Dashboard";
+}
+
+<h2>Welcome, @ViewBag.UserName!</h2>
+<p>This is your Leave dashboard.</p>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Message"]
+    </div>
+}
+
+<a asp-controller="Leave" asp-action="RequestLeave" class="btn btn-primary">Request Leave</a>
+<a asp-controller="Leave" asp-action="LeaveHistory" class="btn btn-secondary mt-2">View Leave History</a>
