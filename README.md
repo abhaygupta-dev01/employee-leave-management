@@ -90,6 +90,7 @@ Located in `/sql`:
 📈 Excel Export
 ![Excel Export Table](screenshots/excel-export.png)
 
+
 📧 Email Notification
 ![Rejected Leave Email](screenshots/email-rejected.png)
 
