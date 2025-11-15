@@ -29,15 +29,15 @@ A full-stack HR-grade leave management platform built with ASP.NET Core and SQL 
 
 ## 📁 Folder Structure
 employee-leave-management/
-├── Controllers/
-├── Models/
-├── Views/ 
-├── sql/
-│ ├── create-tables.sql 
-│ ├── insert-data.sql 
-│ └── sample-queries.sql 
-├── wwwroot/
-├── README.md
+── Controllers/
+── Models/
+── Views/ 
+── sql/
+  ─ create-tables.sql 
+  ─ insert-data.sql 
+  ─ sample-queries.sql 
+── wwwroot/
+  ─ README.md
 
 ---
 
@@ -99,10 +99,10 @@ Located in `/sql`:
    dotnet run
 
 👨‍💻 Author
-- **Name:** Abhay Gupta
-- **Email:** abhaygupta.dev1@gmail.com
-- **GitHub:** https://github.com/abhaygupta-dev01
-- **LinkedIn:** https://www.linkedin.com/in/abhaygupta-dev
+- Name: Abhay Gupta
+- Email: abhaygupta.dev1@gmail.com
+- GitHub: https://github.com/abhaygupta-dev01
+- LinkedIn: https://www.linkedin.com/in/abhaygupta-dev
 
 📄 License
    This project is open-source under the MIT License
