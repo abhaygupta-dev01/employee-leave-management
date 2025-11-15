@@ -37,12 +37,16 @@ employee-leave-management/
 ├── Views/ 
 
 ├── sqlserver/
-│ ├── create-tables.sql 
-│ ├── insert-data.sql
-│ └── sample-queries.sql
+
+  ├─ create-tables.sql 
+
+  ├─ insert-data.sql
+
+  └─ sample-queries.sql
 
 ├── wwwroot/
-├── README.md
+
+  ├─ README.md
 
 ---
 
