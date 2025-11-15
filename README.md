@@ -64,37 +64,46 @@ Located in `/sql`:
 > screenshots in `/screenshots` folder and embed here using Markdown:
 
 🔐 Employee Login Pages
+
 ![Login – Sneha](screenshots/login-sneha.png)
 
 🧑‍💼 Employee Dashboard
+
 ![Dashboard – Sneha](screenshots/dashboard-sneha.png)
 
 📝 Request Leave
+
 ![Request Leave Form](screenshots/request-leave.png)
 
 📜 Leave History
+
 ![Leave History](screenshots/leave-history.png)
 
 🔐 Admin Login Pages
+
 ![Login – Alok](screenshots/login-alok.png)
 
 🛡️ Admin Dashboard
+
 ![Admin Panel – Alok](screenshots/admin-dashboard.png)
 
 🧮 Admin Dashboard Table View
+
 ![Admin Dashboard Table](screenshots/admin-dashboard-table.png)
 
 📊 Monthly Leave Trends
+
 ![Monthly Trends Chart](screenshots/monthly-trends.png)
 
 📈 Excel Export
+
 ![Excel Export Table](screenshots/excel-export.png)
-
-
 📧 Email Notification
+
 ![Rejected Leave Email](screenshots/email-rejected.png)
 
 🖥️ SQL Server Setup
+
 ![SQL Server Setup](screenshots/sqlserver-setup.png)
 
 📚 How to Run
