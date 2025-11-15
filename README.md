@@ -36,7 +36,7 @@ employee-leave-management/
 
 ├── Views/ 
 
-├── sqlserver/
+├── sql/
 
     ├─ create-tables.sql 
 
