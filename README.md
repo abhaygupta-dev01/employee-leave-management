@@ -10,7 +10,7 @@ A full-stack HR-grade leave management platform built with ASP.NET Core and SQL 
 - ✅ Admin approval/rejection workflow
 - 📊 Dashboard with monthly leave trends (Chart.js)
 - 📥 Excel export of leave data
-- 📧 Email notifications (optional)
+- 📧 Email notifications 
 - 🔐 Role-based access control (Admin / Employee)
 
 ---
@@ -38,15 +38,15 @@ employee-leave-management/
 
 ├── sqlserver/
 
-  ├─ create-tables.sql 
+    ├─ create-tables.sql 
 
-  ├─ insert-data.sql
+    ├─ insert-data.sql
 
-  └─ sample-queries.sql
+    └─ sample-queries.sql
 
 ├── wwwroot/
 
-  ├─ README.md
+    ├─ README.md
 
 ---
 
