@@ -62,7 +62,7 @@ Located in `/sql`:
 ## 📸 Screenshots
 
 > screenshots in `/screenshots` folder and embed here using Markdown:
-```markdown
+
 🔐 Employee Login Pages
 ![Login – Sneha](screenshots/login-sneha.png)
 
