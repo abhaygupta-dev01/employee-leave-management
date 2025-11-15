@@ -29,17 +29,20 @@ A full-stack HR-grade leave management platform built with ASP.NET Core and SQL 
 
 ## 📁 Folder Structure
 employee-leave-management/
-── Controllers/
 
-── Models/
+├── Controllers/ 
 
-── Views/ 
-── sql/
-  ─ create-tables.sql 
-  ─ insert-data.sql 
-  ─ sample-queries.sql 
-── wwwroot/
-  ─ README.md
+├── Models/ 
+
+├── Views/ 
+
+├── sqlserver/
+│ ├── create-tables.sql 
+│ ├── insert-data.sql
+│ └── sample-queries.sql
+
+├── wwwroot/
+├── README.md
 
 ---
 
