@@ -1,0 +1,33 @@
+# fly.toml app configuration file generated for leave-management-system
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+
+app = "leave-management-system"
+primary_region = "iad"
+
+[build]
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+[env]
+  ASPNETCORE_ENVIRONMENT = "Production"
+  ASPNETCORE_URLS = "http://0.0.0.0:8080"
+
+# Set secrets using: fly secrets set KEY=value
+# ConnectionStrings__DefaultConnection
+# EmailSettings__SmtpServer
+# EmailSettings__Port
+# EmailSettings__SenderEmail
+# EmailSettings__SenderPassword
+# EmailSettings__SenderName
+

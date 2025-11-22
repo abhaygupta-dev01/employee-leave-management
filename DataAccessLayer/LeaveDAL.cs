@@ -13,12 +13,13 @@ namespace LeaveManagementSystem.DataAccessLayer
                 ?? throw new ArgumentNullException("Connection string not found.");
         }
 
-        public void SubmitLeave(LeaveRequest leave)
+        public int SubmitLeave(LeaveRequest leave)
         {
             using var con = new SqlConnection(_connectionString);
             string query = @"
                 INSERT INTO LeaveRequests (EmployeeId, LeaveType, StartDate, EndDate, Reason, Status)
-                VALUES (@EmployeeId, @LeaveType, @StartDate, @EndDate, @Reason, 'Pending')";
+                VALUES (@EmployeeId, @LeaveType, @StartDate, @EndDate, @Reason, 'Pending');
+                SELECT CAST(SCOPE_IDENTITY() AS INT);";
             using var cmd = new SqlCommand(query, con);
             cmd.Parameters.AddWithValue("@EmployeeId", leave.EmployeeId);
             cmd.Parameters.AddWithValue("@LeaveType", leave.LeaveType);
@@ -26,7 +27,8 @@ namespace LeaveManagementSystem.DataAccessLayer
             cmd.Parameters.AddWithValue("@EndDate", leave.EndDate);
             cmd.Parameters.AddWithValue("@Reason", leave.Reason);
             con.Open();
-            cmd.ExecuteNonQuery();
+            var leaveId = (int)cmd.ExecuteScalar();
+            return leaveId;
         }
 
         public List<LeaveRequest> GetLeaveHistoryByEmployee(int employeeId)

@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: leave-management-system
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:8080
+      # Add your other environment variables in Render dashboard:
+      # ConnectionStrings__DefaultConnection
+      # EmailSettings__SmtpServer
+      # EmailSettings__Port
+      # EmailSettings__SenderEmail
+      # EmailSettings__SenderPassword
+      # EmailSettings__SenderName
+
+databases:
+  - name: leave-management-db
+    plan: free
+    databaseName: leavemanagement
+    user: leavemanagement
+

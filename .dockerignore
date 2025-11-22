@@ -1,0 +1,15 @@
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.suo
+*.cache
+*.log
+appsettings.Development.json
+.git/
+.gitignore
+README.md
+*.md
+.DS_Store
+

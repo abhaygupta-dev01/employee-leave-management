@@ -23,7 +23,11 @@ public class EmailService
 
         using (var client = new SmtpClient())
         {
-            client.Connect(settings["SmtpServer"], int.Parse(settings["Port"]), false);
+            var smtpServer = settings["SmtpServer"] ?? "smtp.gmail.com";
+            var portString = settings["Port"] ?? "587";
+            var port = int.TryParse(portString, out int parsedPort) ? parsedPort : 587;
+            
+            client.Connect(smtpServer, port, false);
             client.Authenticate(settings["SenderEmail"], settings["SenderPassword"]);
             client.Send(message);
             client.Disconnect(true);

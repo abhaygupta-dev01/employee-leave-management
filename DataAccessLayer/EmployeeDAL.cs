@@ -53,5 +53,49 @@ namespace LeaveManagementSystem.DataAccessLayer
                 cmd.ExecuteNonQuery();
             }
         }
+
+        public List<string> GetAdminEmails()
+        {
+            var adminEmails = new List<string>();
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT Email FROM Employees WHERE Role = 'Admin'";
+                SqlCommand cmd = new SqlCommand(query, con);
+                con.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        adminEmails.Add(dr["Email"].ToString()!);
+                    }
+                }
+            }
+            return adminEmails;
+        }
+
+        public Employee GetEmployeeById(int employeeId)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT Id, Name, Email, Role FROM Employees WHERE Id = @Id";
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@Id", employeeId);
+                con.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    if (dr.Read())
+                    {
+                        return new Employee
+                        {
+                            Id = Convert.ToInt32(dr["Id"]),
+                            Name = dr["Name"].ToString(),
+                            Email = dr["Email"].ToString(),
+                            Role = dr["Role"].ToString()
+                        };
+                    }
+                }
+            }
+            return null!;
+        }
     }
 }
