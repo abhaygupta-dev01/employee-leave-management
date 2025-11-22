@@ -1,6 +1,4 @@
-﻿//using System.Data.SqlClient;
-using Microsoft.Data.SqlClient;
-
+﻿using Npgsql;
 using LeaveManagementSystem.Models;
 using Microsoft.Extensions.Configuration;
 
@@ -17,14 +15,14 @@ namespace LeaveManagementSystem.DataAccessLayer
 
         public Employee Login(string email, string password)
         {
-            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (NpgsqlConnection con = new NpgsqlConnection(_connectionString))
             {
                 string query = "SELECT * FROM Employees WHERE Email=@Email AND Password=@Password";
-                SqlCommand cmd = new SqlCommand(query, con);
+                NpgsqlCommand cmd = new NpgsqlCommand(query, con);
                 cmd.Parameters.AddWithValue("@Email", email);
                 cmd.Parameters.AddWithValue("@Password", password);
                 con.Open();
-                SqlDataReader dr = cmd.ExecuteReader();
+                NpgsqlDataReader dr = cmd.ExecuteReader();
                 if (dr.Read())
                 {
                     return new Employee
@@ -41,10 +39,10 @@ namespace LeaveManagementSystem.DataAccessLayer
 
         public void Register(Employee emp)
         {
-            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (NpgsqlConnection con = new NpgsqlConnection(_connectionString))
             {
                 string query = "INSERT INTO Employees (Name, Email, Password, Role) VALUES (@Name, @Email, @Password, @Role)";
-                SqlCommand cmd = new SqlCommand(query, con);
+                NpgsqlCommand cmd = new NpgsqlCommand(query, con);
                 cmd.Parameters.AddWithValue("@Name", emp.Name);
                 cmd.Parameters.AddWithValue("@Email", emp.Email);
                 cmd.Parameters.AddWithValue("@Password", emp.Password);
@@ -57,12 +55,12 @@ namespace LeaveManagementSystem.DataAccessLayer
         public List<string> GetAdminEmails()
         {
             var adminEmails = new List<string>();
-            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (NpgsqlConnection con = new NpgsqlConnection(_connectionString))
             {
                 string query = "SELECT Email FROM Employees WHERE Role = 'Admin'";
-                SqlCommand cmd = new SqlCommand(query, con);
+                NpgsqlCommand cmd = new NpgsqlCommand(query, con);
                 con.Open();
-                using (SqlDataReader dr = cmd.ExecuteReader())
+                using (NpgsqlDataReader dr = cmd.ExecuteReader())
                 {
                     while (dr.Read())
                     {
@@ -75,13 +73,13 @@ namespace LeaveManagementSystem.DataAccessLayer
 
         public Employee GetEmployeeById(int employeeId)
         {
-            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (NpgsqlConnection con = new NpgsqlConnection(_connectionString))
             {
                 string query = "SELECT Id, Name, Email, Role FROM Employees WHERE Id = @Id";
-                SqlCommand cmd = new SqlCommand(query, con);
+                NpgsqlCommand cmd = new NpgsqlCommand(query, con);
                 cmd.Parameters.AddWithValue("@Id", employeeId);
                 con.Open();
-                using (SqlDataReader dr = cmd.ExecuteReader())
+                using (NpgsqlDataReader dr = cmd.ExecuteReader())
                 {
                     if (dr.Read())
                     {

@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Npgsql;
 using LeaveManagementSystem.Models;
 
 namespace LeaveManagementSystem.DataAccessLayer
@@ -15,33 +15,33 @@ namespace LeaveManagementSystem.DataAccessLayer
 
         public int SubmitLeave(LeaveRequest leave)
         {
-            using var con = new SqlConnection(_connectionString);
+            using var con = new NpgsqlConnection(_connectionString);
             string query = @"
                 INSERT INTO LeaveRequests (EmployeeId, LeaveType, StartDate, EndDate, Reason, Status)
-                VALUES (@EmployeeId, @LeaveType, @StartDate, @EndDate, @Reason, 'Pending');
-                SELECT CAST(SCOPE_IDENTITY() AS INT);";
-            using var cmd = new SqlCommand(query, con);
+                VALUES (@EmployeeId, @LeaveType, @StartDate, @EndDate, @Reason, 'Pending')
+                RETURNING Id;";
+            using var cmd = new NpgsqlCommand(query, con);
             cmd.Parameters.AddWithValue("@EmployeeId", leave.EmployeeId);
             cmd.Parameters.AddWithValue("@LeaveType", leave.LeaveType);
             cmd.Parameters.AddWithValue("@StartDate", leave.StartDate);
             cmd.Parameters.AddWithValue("@EndDate", leave.EndDate);
-            cmd.Parameters.AddWithValue("@Reason", leave.Reason);
+            cmd.Parameters.AddWithValue("@Reason", leave.Reason ?? (object)DBNull.Value);
             con.Open();
-            var leaveId = (int)cmd.ExecuteScalar();
+            var leaveId = (int)cmd.ExecuteScalar()!;
             return leaveId;
         }
 
         public List<LeaveRequest> GetLeaveHistoryByEmployee(int employeeId)
         {
             var list = new List<LeaveRequest>();
-            using var con = new SqlConnection(_connectionString);
+            using var con = new NpgsqlConnection(_connectionString);
             string query = @"
                 SELECT lr.*, e.Name AS EmployeeName
                 FROM LeaveRequests lr
                 INNER JOIN Employees e ON lr.EmployeeId = e.Id
                 WHERE lr.EmployeeId = @EmployeeId
                 ORDER BY lr.StartDate DESC";
-            using var cmd = new SqlCommand(query, con);
+            using var cmd = new NpgsqlCommand(query, con);
             cmd.Parameters.AddWithValue("@EmployeeId", employeeId);
             con.Open();
             using var dr = cmd.ExecuteReader();
@@ -54,7 +54,7 @@ namespace LeaveManagementSystem.DataAccessLayer
                     LeaveType = dr["LeaveType"].ToString()!,
                     StartDate = Convert.ToDateTime(dr["StartDate"]),
                     EndDate = Convert.ToDateTime(dr["EndDate"]),
-                    Reason = dr["Reason"].ToString()!,
+                    Reason = dr["Reason"]?.ToString() ?? "",
                     Status = dr["Status"].ToString()!,
                     EmployeeName = dr["EmployeeName"].ToString()!
                 });
@@ -65,16 +65,16 @@ namespace LeaveManagementSystem.DataAccessLayer
         public List<LeaveRequest> GetFilteredLeaveRequests(string status, string keyword)
         {
             var list = new List<LeaveRequest>();
-            using var con = new SqlConnection(_connectionString);
+            using var con = new NpgsqlConnection(_connectionString);
             string query = @"
                 SELECT lr.Id, lr.EmployeeId, lr.LeaveType, lr.StartDate, lr.EndDate, lr.Reason, lr.Status,
                        e.Name AS EmployeeName
                 FROM LeaveRequests lr
                 INNER JOIN Employees e ON lr.EmployeeId = e.Id
                 WHERE (@Status = '' OR lr.Status = @Status)
-                  AND (@Keyword = '' OR e.Name LIKE '%' + @Keyword + '%' OR CAST(lr.EmployeeId AS NVARCHAR) LIKE '%' + @Keyword + '%')
+                  AND (@Keyword = '' OR e.Name LIKE '%' || @Keyword || '%' OR CAST(lr.EmployeeId AS VARCHAR) LIKE '%' || @Keyword || '%')
                 ORDER BY lr.StartDate DESC";
-            using var cmd = new SqlCommand(query, con);
+            using var cmd = new NpgsqlCommand(query, con);
             cmd.Parameters.AddWithValue("@Status", status ?? "");
             cmd.Parameters.AddWithValue("@Keyword", keyword ?? "");
             con.Open();
@@ -89,7 +89,7 @@ namespace LeaveManagementSystem.DataAccessLayer
                     LeaveType = dr["LeaveType"].ToString()!,
                     StartDate = Convert.ToDateTime(dr["StartDate"]),
                     EndDate = Convert.ToDateTime(dr["EndDate"]),
-                    Reason = dr["Reason"].ToString()!,
+                    Reason = dr["Reason"]?.ToString() ?? "",
                     Status = dr["Status"].ToString()!
                 });
             }
@@ -98,7 +98,7 @@ namespace LeaveManagementSystem.DataAccessLayer
 
         public LeaveRequest GetLeaveRequestById(int id)
         {
-            using var con = new SqlConnection(_connectionString);
+            using var con = new NpgsqlConnection(_connectionString);
             string query = @"
                 SELECT lr.Id, lr.EmployeeId, lr.LeaveType, lr.StartDate, lr.EndDate, lr.Reason, lr.Status,
                        e.Email AS EmployeeEmail,
@@ -106,7 +106,7 @@ namespace LeaveManagementSystem.DataAccessLayer
                 FROM LeaveRequests lr
                 INNER JOIN Employees e ON lr.EmployeeId = e.Id
                 WHERE lr.Id = @Id";
-            using var cmd = new SqlCommand(query, con);
+            using var cmd = new NpgsqlCommand(query, con);
             cmd.Parameters.AddWithValue("@Id", id);
             con.Open();
             using var dr = cmd.ExecuteReader();
@@ -119,7 +119,7 @@ namespace LeaveManagementSystem.DataAccessLayer
                     LeaveType = dr["LeaveType"].ToString()!,
                     StartDate = Convert.ToDateTime(dr["StartDate"]),
                     EndDate = Convert.ToDateTime(dr["EndDate"]),
-                    Reason = dr["Reason"].ToString()!,
+                    Reason = dr["Reason"]?.ToString() ?? "",
                     Status = dr["Status"].ToString()!,
                     EmployeeEmail = dr["EmployeeEmail"].ToString()!,
                     EmployeeName = dr["EmployeeName"].ToString()!
@@ -130,9 +130,9 @@ namespace LeaveManagementSystem.DataAccessLayer
 
         public void UpdateLeaveStatus(int id, string status)
         {
-            using var con = new SqlConnection(_connectionString);
+            using var con = new NpgsqlConnection(_connectionString);
             string query = @"UPDATE LeaveRequests SET Status = @Status WHERE Id = @Id";
-            using var cmd = new SqlCommand(query, con);
+            using var cmd = new NpgsqlCommand(query, con);
             cmd.Parameters.AddWithValue("@Id", id);
             cmd.Parameters.AddWithValue("@Status", status);
             con.Open();
@@ -142,9 +142,9 @@ namespace LeaveManagementSystem.DataAccessLayer
         public Dictionary<string, int> GetLeaveSummary()
         {
             var result = new Dictionary<string, int>();
-            using var con = new SqlConnection(_connectionString);
+            using var con = new NpgsqlConnection(_connectionString);
             string query = @"SELECT Status, COUNT(*) AS Count FROM LeaveRequests GROUP BY Status";
-            using var cmd = new SqlCommand(query, con);
+            using var cmd = new NpgsqlCommand(query, con);
             con.Open();
             using var dr = cmd.ExecuteReader();
             int total = 0;
@@ -162,13 +162,13 @@ namespace LeaveManagementSystem.DataAccessLayer
         public Dictionary<string, int> GetMonthlyLeaveCounts()
         {
             var result = new Dictionary<string, int>();
-            using var con = new SqlConnection(_connectionString);
+            using var con = new NpgsqlConnection(_connectionString);
             string query = @"
-                SELECT FORMAT(StartDate, 'MMM yyyy') AS Month, COUNT(*) AS Count
+                SELECT TO_CHAR(StartDate, 'Mon YYYY') AS Month, COUNT(*) AS Count
                 FROM LeaveRequests
-                GROUP BY FORMAT(StartDate, 'MMM yyyy')
+                GROUP BY TO_CHAR(StartDate, 'Mon YYYY')
                 ORDER BY MIN(StartDate)";
-            using var cmd = new SqlCommand(query, con);
+            using var cmd = new NpgsqlCommand(query, con);
             con.Open();
             using var dr = cmd.ExecuteReader();
             while (dr.Read())
