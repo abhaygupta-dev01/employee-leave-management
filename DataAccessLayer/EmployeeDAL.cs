@@ -11,11 +11,23 @@ namespace LeaveManagementSystem.DataAccessLayer
 
         public EmployeeDAL(IConfiguration config)
         {
-            var rawConnectionString = config.GetConnectionString("DefaultConnection")
+            var rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                ?? Environment.GetEnvironmentVariable("POSTGRES_URL")
                 ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
                 ?? Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection")
+                ?? config.GetConnectionString("DefaultConnection")
                 ?? "";
-            _connectionString = ConnectionStringHelper.CleanPostgresConnectionString(rawConnectionString);
+            
+            // If it's a PostgreSQL URL, use it directly
+            if (rawConnectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) || 
+                rawConnectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+            {
+                _connectionString = rawConnectionString;
+            }
+            else
+            {
+                _connectionString = ConnectionStringHelper.CleanPostgresConnectionString(rawConnectionString);
+            }
         }
 
         public Employee Login(string email, string password)

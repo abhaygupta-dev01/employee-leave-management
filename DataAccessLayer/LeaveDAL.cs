@@ -10,16 +10,27 @@ namespace LeaveManagementSystem.DataAccessLayer
 
         public LeaveDAL(IConfiguration config)
         {
-            var rawConnectionString = config.GetConnectionString("DefaultConnection")
+            var rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                ?? Environment.GetEnvironmentVariable("POSTGRES_URL")
                 ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-                ?? Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
+                ?? Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection")
+                ?? config.GetConnectionString("DefaultConnection");
             
             if (string.IsNullOrWhiteSpace(rawConnectionString))
             {
                 throw new ArgumentNullException("Connection string not found.");
             }
             
-            _connectionString = ConnectionStringHelper.CleanPostgresConnectionString(rawConnectionString);
+            // If it's a PostgreSQL URL, use it directly
+            if (rawConnectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) || 
+                rawConnectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+            {
+                _connectionString = rawConnectionString;
+            }
+            else
+            {
+                _connectionString = ConnectionStringHelper.CleanPostgresConnectionString(rawConnectionString);
+            }
         }
 
         public int SubmitLeave(LeaveRequest leave)
