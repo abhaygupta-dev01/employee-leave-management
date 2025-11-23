@@ -101,11 +101,24 @@ namespace LeaveManagementSystem.Services
             if (string.IsNullOrWhiteSpace(rawConnectionString))
             {
                 throw new ArgumentNullException(nameof(configuration), 
-                    "Connection string not found. Please set ConnectionStrings__DefaultConnection environment variable.");
+                    "Connection string not found. Please set ConnectionStrings__DefaultConnection or DATABASE_URL environment variable.");
             }
             
-            // Clean the connection string - remove SQL Server specific parameters
-            _connectionString = ConnectionStringHelper.CleanPostgresConnectionString(rawConnectionString);
+            _logger?.LogError("Raw connection string from {Source}: {ConnectionString}", source, 
+                rawConnectionString.Substring(0, Math.Min(80, rawConnectionString.Length)));
+            
+            // If it's already a PostgreSQL URL, use it directly (Npgsql supports URLs)
+            if (rawConnectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) || 
+                rawConnectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger?.LogError("Using PostgreSQL URL directly (no parsing needed)");
+                _connectionString = rawConnectionString;
+            }
+            else
+            {
+                // Clean the connection string - remove SQL Server specific parameters
+                _connectionString = ConnectionStringHelper.CleanPostgresConnectionString(rawConnectionString);
+            }
         }
 
         public void InitializeDatabase()
