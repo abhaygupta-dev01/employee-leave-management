@@ -11,7 +11,14 @@ namespace LeaveManagementSystem.DataAccessLayer
         public LeaveDAL(IConfiguration config)
         {
             var rawConnectionString = config.GetConnectionString("DefaultConnection")
-                ?? throw new ArgumentNullException("Connection string not found.");
+                ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                ?? Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
+            
+            if (string.IsNullOrWhiteSpace(rawConnectionString))
+            {
+                throw new ArgumentNullException("Connection string not found.");
+            }
+            
             _connectionString = ConnectionStringHelper.CleanPostgresConnectionString(rawConnectionString);
         }
 
