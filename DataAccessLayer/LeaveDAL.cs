@@ -1,5 +1,6 @@
 ﻿using Npgsql;
 using LeaveManagementSystem.Models;
+using LeaveManagementSystem.Helpers;
 
 namespace LeaveManagementSystem.DataAccessLayer
 {
@@ -9,8 +10,9 @@ namespace LeaveManagementSystem.DataAccessLayer
 
         public LeaveDAL(IConfiguration config)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection")
+            var rawConnectionString = config.GetConnectionString("DefaultConnection")
                 ?? throw new ArgumentNullException("Connection string not found.");
+            _connectionString = ConnectionStringHelper.CleanPostgresConnectionString(rawConnectionString);
         }
 
         public int SubmitLeave(LeaveRequest leave)

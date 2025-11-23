@@ -1,6 +1,7 @@
 ﻿using Npgsql;
 using LeaveManagementSystem.Models;
 using Microsoft.Extensions.Configuration;
+using LeaveManagementSystem.Helpers;
 
 namespace LeaveManagementSystem.DataAccessLayer
 {
@@ -10,7 +11,8 @@ namespace LeaveManagementSystem.DataAccessLayer
 
         public EmployeeDAL(IConfiguration config)
         {
-            _connectionString = config.GetConnectionString("DefaultConnection");
+            var rawConnectionString = config.GetConnectionString("DefaultConnection");
+            _connectionString = ConnectionStringHelper.CleanPostgresConnectionString(rawConnectionString ?? "");
         }
 
         public Employee Login(string email, string password)
