@@ -12,14 +12,31 @@ namespace LeaveManagementSystem.Services
 
         public DatabaseInitializer(IConfiguration configuration, ILogger<DatabaseInitializer>? logger = null)
         {
-            // Try to get connection string from configuration (supports both appsettings.json and environment variables)
-            var rawConnectionString = configuration.GetConnectionString("DefaultConnection");
+            _logger = logger;
             
-            // If not found, try reading directly from environment variable (Railway might use single underscore)
-            if (string.IsNullOrWhiteSpace(rawConnectionString))
+            // First, try reading directly from environment variable (highest priority)
+            var rawConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") 
+                ?? Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
+            
+            // Log what we found
+            if (!string.IsNullOrWhiteSpace(rawConnectionString))
             {
-                rawConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") 
-                    ?? Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
+                _logger?.LogInformation("Found connection string from environment variable (first 50 chars): {ConnectionString}", 
+                    rawConnectionString.Substring(0, Math.Min(50, rawConnectionString.Length)));
+            }
+            else
+            {
+                _logger?.LogWarning("Connection string not found in environment variables. Checking configuration...");
+                
+                // Fallback to configuration (appsettings.json)
+                rawConnectionString = configuration.GetConnectionString("DefaultConnection");
+                
+                if (!string.IsNullOrWhiteSpace(rawConnectionString))
+                {
+                    _logger?.LogWarning("Using connection string from appsettings.json (first 50 chars): {ConnectionString}", 
+                        rawConnectionString.Substring(0, Math.Min(50, rawConnectionString.Length)));
+                    _logger?.LogWarning("WARNING: Using appsettings.json connection string. Environment variable not found!");
+                }
             }
             
             if (string.IsNullOrWhiteSpace(rawConnectionString))
@@ -28,12 +45,8 @@ namespace LeaveManagementSystem.Services
                     "Connection string not found. Please set ConnectionStrings__DefaultConnection environment variable.");
             }
             
-            _logger?.LogInformation("Raw connection string (first 50 chars): {ConnectionString}", 
-                rawConnectionString.Substring(0, Math.Min(50, rawConnectionString.Length)));
-            
             // Clean the connection string - remove SQL Server specific parameters
             _connectionString = ConnectionStringHelper.CleanPostgresConnectionString(rawConnectionString);
-            _logger = logger;
         }
 
         public void InitializeDatabase()
