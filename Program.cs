@@ -1,4 +1,6 @@
 using LeaveManagementSystem;
+using LeaveManagementSystem.Services;
+using Microsoft.Extensions.Logging;
 
 namespace LeaveManagementSystem
 {
@@ -15,6 +17,21 @@ namespace LeaveManagementSystem
 
 
             var app = builder.Build();
+
+            // Initialize database tables
+            try
+            {
+                var logger = app.Services.GetRequiredService<ILogger<DatabaseInitializer>>();
+                var configuration = app.Configuration;
+                var initializer = new DatabaseInitializer(configuration, logger);
+                initializer.InitializeDatabase();
+            }
+            catch (Exception ex)
+            {
+                var logger = app.Services.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, "Failed to initialize database: {Message}", ex.Message);
+                // Continue app startup even if initialization fails
+            }
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
