@@ -18,14 +18,27 @@ namespace LeaveManagementSystem.Services
             string? source = null;
             
             // Try multiple ways to get the connection string
-            // 1. Direct environment variable (double underscore)
-            rawConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+            // Priority order: Environment variables first (they override appsettings.json)
+            
+            // 1. Try Railway's DATABASE_URL first (most common for Railway deployments)
+            rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                ?? Environment.GetEnvironmentVariable("POSTGRES_URL");
             if (!string.IsNullOrWhiteSpace(rawConnectionString))
             {
-                source = "Environment variable (ConnectionStrings__DefaultConnection)";
+                source = "DATABASE_URL or POSTGRES_URL environment variable";
             }
             
-            // 2. Direct environment variable (single underscore)
+            // 2. Direct environment variable (double underscore)
+            if (string.IsNullOrWhiteSpace(rawConnectionString))
+            {
+                rawConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+                if (!string.IsNullOrWhiteSpace(rawConnectionString))
+                {
+                    source = "Environment variable (ConnectionStrings__DefaultConnection)";
+                }
+            }
+            
+            // 3. Direct environment variable (single underscore)
             if (string.IsNullOrWhiteSpace(rawConnectionString))
             {
                 rawConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
@@ -35,7 +48,7 @@ namespace LeaveManagementSystem.Services
                 }
             }
             
-            // 3. From configuration system (should read env vars automatically)
+            // 4. From configuration system (should read env vars automatically, but may fall back to appsettings.json)
             if (string.IsNullOrWhiteSpace(rawConnectionString))
             {
                 rawConnectionString = configuration.GetConnectionString("DefaultConnection");
@@ -45,24 +58,13 @@ namespace LeaveManagementSystem.Services
                 }
             }
             
-            // 4. Try reading from configuration section directly
+            // 5. Try reading from configuration section directly
             if (string.IsNullOrWhiteSpace(rawConnectionString))
             {
                 rawConnectionString = configuration["ConnectionStrings:DefaultConnection"];
                 if (!string.IsNullOrWhiteSpace(rawConnectionString))
                 {
                     source = "Configuration section (ConnectionStrings:DefaultConnection)";
-                }
-            }
-            
-            // 5. Try Railway's DATABASE_URL (common convention)
-            if (string.IsNullOrWhiteSpace(rawConnectionString))
-            {
-                rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
-                    ?? Environment.GetEnvironmentVariable("POSTGRES_URL");
-                if (!string.IsNullOrWhiteSpace(rawConnectionString))
-                {
-                    source = "DATABASE_URL or POSTGRES_URL environment variable";
                 }
             }
             
