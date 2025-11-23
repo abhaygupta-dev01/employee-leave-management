@@ -25,8 +25,19 @@ namespace LeaveManagementSystem.Services
             try
             {
                 _logger?.LogInformation("Starting database initialization...");
-                _logger?.LogInformation("Connection string: {ConnectionString}", 
-                    _connectionString?.Substring(0, Math.Min(50, _connectionString?.Length ?? 0)) + "...");
+                // Log connection string info (mask password)
+                var connectionStringForLog = _connectionString ?? "";
+                if (connectionStringForLog.Contains("Password="))
+                {
+                    var parts = connectionStringForLog.Split(';');
+                    var maskedParts = parts.Select(p => 
+                        p.Trim().StartsWith("Password=", StringComparison.OrdinalIgnoreCase) 
+                            ? "Password=***" 
+                            : p);
+                    connectionStringForLog = string.Join(";", maskedParts);
+                }
+                _logger?.LogInformation("Connection string (masked): {ConnectionString}", 
+                    connectionStringForLog.Substring(0, Math.Min(100, connectionStringForLog.Length)));
 
                 using var connection = new NpgsqlConnection(_connectionString);
                 connection.Open();

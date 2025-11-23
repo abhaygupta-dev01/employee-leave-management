@@ -16,6 +16,21 @@ namespace LeaveManagementSystem.Helpers
                 return connectionString;
             }
 
+            // Try to parse as Npgsql connection string first
+            try
+            {
+                var testBuilder = new NpgsqlConnectionStringBuilder(connectionString);
+                // If it parses successfully and has a host, use it
+                if (!string.IsNullOrWhiteSpace(testBuilder.Host))
+                {
+                    return connectionString;
+                }
+            }
+            catch
+            {
+                // If parsing fails, continue with manual parsing
+            }
+
             // Parse and rebuild connection string, removing SQL Server specific parameters
             var builder = new NpgsqlConnectionStringBuilder();
             
@@ -68,6 +83,16 @@ namespace LeaveManagementSystem.Helpers
                         builder.Password = value;
                         break;
                 }
+            }
+            
+            // If we still don't have a host, throw a more descriptive error
+            if (string.IsNullOrWhiteSpace(builder.Host))
+            {
+                throw new ArgumentException(
+                    $"Connection string is missing required 'Host' parameter. " +
+                    $"Connection string format: {connectionString.Substring(0, Math.Min(100, connectionString.Length))}... " +
+                    $"Please ensure the connection string includes Host, Database, Username, and Password.",
+                    nameof(connectionString));
             }
             
             return builder.ConnectionString;
