@@ -21,9 +21,12 @@ namespace LeaveManagementSystem.Services
             try
             {
                 _logger?.LogInformation("Starting database initialization...");
+                _logger?.LogInformation("Connection string: {ConnectionString}", 
+                    _connectionString?.Substring(0, Math.Min(50, _connectionString?.Length ?? 0)) + "...");
 
                 using var connection = new NpgsqlConnection(_connectionString);
                 connection.Open();
+                _logger?.LogInformation("Database connection opened successfully.");
 
                 // Create Employees table
                 CreateEmployeesTable(connection);
@@ -31,14 +34,38 @@ namespace LeaveManagementSystem.Services
                 // Create LeaveRequests table
                 CreateLeaveRequestsTable(connection);
 
+                // Verify tables were created
+                VerifyTablesExist(connection);
+
                 _logger?.LogInformation("Database initialization completed successfully.");
             }
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Error during database initialization: {Message}", ex.Message);
+                _logger?.LogError(ex, "Stack trace: {StackTrace}", ex.StackTrace);
                 // Don't throw - allow app to start even if initialization fails
                 // Tables might already exist or connection might not be available yet
             }
+        }
+
+        private void VerifyTablesExist(NpgsqlConnection connection)
+        {
+            string checkTablesQuery = @"
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name IN ('employees', 'Employees', 'leaverequests', 'LeaveRequests');";
+
+            using var command = new NpgsqlCommand(checkTablesQuery, connection);
+            using var reader = command.ExecuteReader();
+            
+            var tables = new List<string>();
+            while (reader.Read())
+            {
+                tables.Add(reader.GetString(0));
+            }
+            
+            _logger?.LogInformation("Tables found in database: {Tables}", string.Join(", ", tables));
         }
 
         private void CreateEmployeesTable(NpgsqlConnection connection)
