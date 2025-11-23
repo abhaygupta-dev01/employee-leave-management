@@ -14,6 +14,17 @@ namespace LeaveManagementSystem.Services
         {
             _logger = logger;
             
+            // CRITICAL DEBUG: Log ALL environment variables to see what Railway is providing
+            _logger?.LogError("=== DEBUG: ALL ENVIRONMENT VARIABLES ===");
+            var allVars = Environment.GetEnvironmentVariables();
+            foreach (string key in allVars.Keys.Cast<string>().OrderBy(k => k))
+            {
+                var value = allVars[key]?.ToString() ?? "";
+                if (value.Length > 100) value = value.Substring(0, 100) + "...";
+                _logger?.LogError("ENV VAR: {Key} = {Value}", key, value);
+            }
+            _logger?.LogError("=== END DEBUG ===");
+            
             string? rawConnectionString = null;
             string? source = null;
             
@@ -21,11 +32,16 @@ namespace LeaveManagementSystem.Services
             // Priority order: Environment variables first (they override appsettings.json)
             
             // 1. Try Railway's DATABASE_URL first (most common for Railway deployments)
-            rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
-                ?? Environment.GetEnvironmentVariable("POSTGRES_URL");
+            var dbUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+            var postgresUrl = Environment.GetEnvironmentVariable("POSTGRES_URL");
+            _logger?.LogError("DATABASE_URL exists: {Exists}, POSTGRES_URL exists: {Exists2}", 
+                !string.IsNullOrWhiteSpace(dbUrl), !string.IsNullOrWhiteSpace(postgresUrl));
+            
+            rawConnectionString = dbUrl ?? postgresUrl;
             if (!string.IsNullOrWhiteSpace(rawConnectionString))
             {
                 source = "DATABASE_URL or POSTGRES_URL environment variable";
+                _logger?.LogError("USING DATABASE_URL: {Value}", rawConnectionString.Substring(0, Math.Min(50, rawConnectionString.Length)));
             }
             
             // 2. Direct environment variable (double underscore)
