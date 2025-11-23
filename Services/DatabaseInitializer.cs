@@ -12,8 +12,24 @@ namespace LeaveManagementSystem.Services
 
         public DatabaseInitializer(IConfiguration configuration, ILogger<DatabaseInitializer>? logger = null)
         {
-            var rawConnectionString = configuration.GetConnectionString("DefaultConnection")
-                ?? throw new ArgumentNullException(nameof(configuration), "Connection string not found.");
+            // Try to get connection string from configuration (supports both appsettings.json and environment variables)
+            var rawConnectionString = configuration.GetConnectionString("DefaultConnection");
+            
+            // If not found, try reading directly from environment variable (Railway might use single underscore)
+            if (string.IsNullOrWhiteSpace(rawConnectionString))
+            {
+                rawConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") 
+                    ?? Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
+            }
+            
+            if (string.IsNullOrWhiteSpace(rawConnectionString))
+            {
+                throw new ArgumentNullException(nameof(configuration), 
+                    "Connection string not found. Please set ConnectionStrings__DefaultConnection environment variable.");
+            }
+            
+            _logger?.LogInformation("Raw connection string (first 50 chars): {ConnectionString}", 
+                rawConnectionString.Substring(0, Math.Min(50, rawConnectionString.Length)));
             
             // Clean the connection string - remove SQL Server specific parameters
             _connectionString = ConnectionStringHelper.CleanPostgresConnectionString(rawConnectionString);
