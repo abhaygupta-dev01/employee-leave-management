@@ -14,6 +14,21 @@ namespace LeaveManagementSystem.Services
         {
             _logger = logger;
             
+            // Debug: Log all environment variables that start with "Connection" to see what's available
+            _logger?.LogInformation("=== Debug: Checking environment variables ===");
+            var allEnvVars = Environment.GetEnvironmentVariables();
+            foreach (string key in allEnvVars.Keys)
+            {
+                if (key.Contains("Connection", StringComparison.OrdinalIgnoreCase) || 
+                    key.Contains("DATABASE", StringComparison.OrdinalIgnoreCase))
+                {
+                    var value = allEnvVars[key]?.ToString() ?? "";
+                    var maskedValue = value.Length > 50 ? value.Substring(0, 50) + "..." : value;
+                    _logger?.LogInformation("Found env var: {Key} = {Value}", key, maskedValue);
+                }
+            }
+            _logger?.LogInformation("=== End debug ===");
+            
             // First, try reading directly from environment variable (highest priority)
             var rawConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") 
                 ?? Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
