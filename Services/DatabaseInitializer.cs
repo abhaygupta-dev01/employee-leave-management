@@ -14,44 +14,70 @@ namespace LeaveManagementSystem.Services
         {
             _logger = logger;
             
-            // Debug: Log all environment variables that start with "Connection" to see what's available
-            _logger?.LogInformation("=== Debug: Checking environment variables ===");
-            var allEnvVars = Environment.GetEnvironmentVariables();
-            foreach (string key in allEnvVars.Keys)
+            string? rawConnectionString = null;
+            string? source = null;
+            
+            // Try multiple ways to get the connection string
+            // 1. Direct environment variable (double underscore)
+            rawConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+            if (!string.IsNullOrWhiteSpace(rawConnectionString))
             {
-                if (key.Contains("Connection", StringComparison.OrdinalIgnoreCase) || 
-                    key.Contains("DATABASE", StringComparison.OrdinalIgnoreCase))
+                source = "Environment variable (ConnectionStrings__DefaultConnection)";
+            }
+            
+            // 2. Direct environment variable (single underscore)
+            if (string.IsNullOrWhiteSpace(rawConnectionString))
+            {
+                rawConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
+                if (!string.IsNullOrWhiteSpace(rawConnectionString))
                 {
-                    var value = allEnvVars[key]?.ToString() ?? "";
-                    var maskedValue = value.Length > 50 ? value.Substring(0, 50) + "..." : value;
-                    _logger?.LogInformation("Found env var: {Key} = {Value}", key, maskedValue);
+                    source = "Environment variable (ConnectionStrings_DefaultConnection)";
                 }
             }
-            _logger?.LogInformation("=== End debug ===");
             
-            // First, try reading directly from environment variable (highest priority)
-            var rawConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") 
-                ?? Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
+            // 3. From configuration system (should read env vars automatically)
+            if (string.IsNullOrWhiteSpace(rawConnectionString))
+            {
+                rawConnectionString = configuration.GetConnectionString("DefaultConnection");
+                if (!string.IsNullOrWhiteSpace(rawConnectionString))
+                {
+                    source = "Configuration system (appsettings.json or env var)";
+                }
+            }
+            
+            // 4. Try reading from configuration section directly
+            if (string.IsNullOrWhiteSpace(rawConnectionString))
+            {
+                rawConnectionString = configuration["ConnectionStrings:DefaultConnection"];
+                if (!string.IsNullOrWhiteSpace(rawConnectionString))
+                {
+                    source = "Configuration section (ConnectionStrings:DefaultConnection)";
+                }
+            }
+            
+            // 5. Try Railway's DATABASE_URL (common convention)
+            if (string.IsNullOrWhiteSpace(rawConnectionString))
+            {
+                rawConnectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                    ?? Environment.GetEnvironmentVariable("POSTGRES_URL");
+                if (!string.IsNullOrWhiteSpace(rawConnectionString))
+                {
+                    source = "DATABASE_URL or POSTGRES_URL environment variable";
+                }
+            }
             
             // Log what we found
             if (!string.IsNullOrWhiteSpace(rawConnectionString))
             {
-                _logger?.LogInformation("Found connection string from environment variable (first 50 chars): {ConnectionString}", 
-                    rawConnectionString.Substring(0, Math.Min(50, rawConnectionString.Length)));
+                var preview = rawConnectionString.Length > 50 
+                    ? rawConnectionString.Substring(0, 50) + "..." 
+                    : rawConnectionString;
+                _logger?.LogInformation("Found connection string from {Source}: {ConnectionString}", source, preview);
             }
             else
             {
-                _logger?.LogWarning("Connection string not found in environment variables. Checking configuration...");
-                
-                // Fallback to configuration (appsettings.json)
-                rawConnectionString = configuration.GetConnectionString("DefaultConnection");
-                
-                if (!string.IsNullOrWhiteSpace(rawConnectionString))
-                {
-                    _logger?.LogWarning("Using connection string from appsettings.json (first 50 chars): {ConnectionString}", 
-                        rawConnectionString.Substring(0, Math.Min(50, rawConnectionString.Length)));
-                    _logger?.LogWarning("WARNING: Using appsettings.json connection string. Environment variable not found!");
-                }
+                _logger?.LogError("Connection string not found in any location!");
+                _logger?.LogError("Checked: ConnectionStrings__DefaultConnection, ConnectionStrings_DefaultConnection, Configuration, DATABASE_URL, POSTGRES_URL");
             }
             
             if (string.IsNullOrWhiteSpace(rawConnectionString))
