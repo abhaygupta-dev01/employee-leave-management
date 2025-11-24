@@ -1,36 +1,53 @@
-﻿using MailKit.Net.Smtp;
+using MailKit.Net.Smtp;
 using MimeKit;
 using Microsoft.Extensions.Configuration;
 
-public class EmailService
+namespace LeaveManagementSystem.Services
 {
-    private readonly IConfiguration _config;
-
-    public EmailService(IConfiguration config)
+    public class EmailService
     {
-        _config = config;
-    }
+        private readonly IConfiguration _config;
 
-    public void SendEmail(string toEmail, string subject, string body)
-    {
-        var settings = _config.GetSection("EmailSettings");
-
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(settings["SenderName"], settings["SenderEmail"]));
-        message.To.Add(new MailboxAddress("", toEmail));
-        message.Subject = subject;
-        message.Body = new TextPart("html") { Text = body };
-
-        using (var client = new SmtpClient())
+        public EmailService(IConfiguration? config = null)
         {
-            var smtpServer = settings["SmtpServer"] ?? "smtp.gmail.com";
-            var portString = settings["Port"] ?? "587";
-            var port = int.TryParse(portString, out int parsedPort) ? parsedPort : 587;
-            
-            client.Connect(smtpServer, port, false);
-            client.Authenticate(settings["SenderEmail"], settings["SenderPassword"]);
-            client.Send(message);
-            client.Disconnect(true);
+            // Handle null configuration gracefully
+            _config = config ?? new ConfigurationBuilder().Build();
+        }
+
+        public void SendEmail(string toEmail, string subject, string body)
+        {
+            try
+            {
+                var settings = _config.GetSection("EmailSettings");
+
+                var message = new MimeMessage();
+                var senderEmail = settings["SenderEmail"] ?? "noreply@example.com";
+                var senderName = settings["SenderName"] ?? "Leave Management System";
+                
+                message.From.Add(new MailboxAddress(senderName, senderEmail));
+                message.To.Add(new MailboxAddress("", toEmail));
+                message.Subject = subject;
+                message.Body = new TextPart("html") { Text = body };
+
+                using (var client = new SmtpClient())
+                {
+                    var smtpServer = settings["SmtpServer"] ?? "smtp.gmail.com";
+                    var portString = settings["Port"] ?? "587";
+                    var port = int.TryParse(portString, out int parsedPort) ? parsedPort : 587;
+                    var senderPassword = settings["SenderPassword"] ?? "";
+                    
+                    client.Connect(smtpServer, port, false);
+                    client.Authenticate(senderEmail, senderPassword);
+                    client.Send(message);
+                    client.Disconnect(true);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log or handle email sending errors gracefully
+                Console.WriteLine($"Error sending email: {ex.Message}");
+                throw;
+            }
         }
     }
 }
