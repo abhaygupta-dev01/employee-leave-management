@@ -183,7 +183,7 @@ For detailed environment variable setup, see **[ENVIRONMENT_VARIABLES.md](ENVIRO
 - **Name:** Abhay Gupta
 - **Email:** abhaygupta.dev1@gmail.com
 - **GitHub:** https://github.com/abhaygupta-dev01
-- **LinkedIn:** https://www.linkedin.com/in/abhaygupta-dev
+- **LinkedIn:** https://www.linkedin.com/in/abhaygupta-dev1
 
 ---
 
